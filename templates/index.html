@@ -1,0 +1,108 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Flask-SocketIO Test</title>
+    <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
+    <script type="text/javascript" charset="utf-8">
+        $(document).ready(function(){
+            namespace = '/test'; // change to an empty string to use the global namespace
+
+            // the socket.io documentation recommends sending an explicit package upon connection
+            // this is specially important when using the global namespace
+            var socket = io.connect('http://' + document.domain + ':' + location.port + namespace);
+
+            // event handler for server sent data
+            // the data is displayed in the "Received" section of the page
+            socket.on('my response', function(msg) {
+                $('#log').append('<br>' + $('<div/>').text('Received #' + msg.count + ': ' + msg.data).html());
+            });
+
+            // event handler for new connections
+            socket.on('connect', function() {
+                socket.emit('my event', {data: 'I\'m connected!'});
+            });
+
+            // handlers for the different forms in the page
+            // these send data to the server in a variety of ways
+            $('form#emit').submit(function(event) {
+                socket.emit('my event', {data: $('#emit_data').val()});
+                return false;
+            });
+            $('form#broadcast').submit(function(event) {
+                socket.emit('my broadcast event', {data: $('#broadcast_data').val()});
+                return false;
+            });
+            $('form#join').submit(function(event) {
+                socket.emit('join', {room: $('#join_room').val()});
+                return false;
+            });
+            $('form#submit_vote').submit(function(event) {
+                socket.emit('vote', {vote: $('#vote').val()});
+                return false;
+            });
+            $('form#end_round').submit(function(event) {
+                socket.emit('end round');
+                return false;
+            });
+            $('form#end_game').submit(function(event) {
+                socket.emit('end game');
+                return false;
+            });
+            $('form#submit_definition').submit(function(event) {
+                socket.emit('submit definition', {
+                  definition: $('#definition').val(),
+                  player_id: $('#player_id').val()});
+                return false;
+            });
+            $('form#disconnect').submit(function(event) {
+                socket.emit('disconnect request');
+                return false;
+            });
+            $('form#new_round').submit(function(event) {
+                socket.emit('new round');
+                return false;
+            });
+            $('form#start_voting').submit(function(event) {
+                socket.emit('start voting');
+                return false;
+            });
+
+        });
+    </script>
+</head>
+<body>
+    <h1>Flask-SocketIO Test</h1>
+    <h2>Send:</h2>
+    <form id="join" method="POST" action='#'>
+        <input type="text" name="join_room" id="join_room" placeholder="Player Name">
+        <input type="submit" value="Join Game">
+    </form>
+    <form id="new_round" method="POST" action="#">
+        <input type="submit" value="New Round">
+    </form>
+    <form id="submit_definition" method="POST" action="#">
+        <input type="text" name="player_id" id="player_id" placeholder="Player ID">
+        <input type="text" name="definition" id="definition" placeholder="Definition">
+        <input type="submit" value="Submit Definition">
+    </form>
+    <form id="start_voting" method="POST" action="#">
+        <input type="submit" value="Start Voting">
+    </form>
+    <form id="submit_vote" method="POST" action='#'>
+        <input type="text" name="vote" id="vote" placeholder="Definition Number">
+        <input type="submit" value="Submit Vote">
+    </form>
+    <form id="end_round" method="POST" action='#'>
+            <input type="submit" value="End Round">
+    </form>
+    <form id="end_game" method="POST" action='#'>
+            <input type="submit" value="End Game">
+    </form>
+    <form id="disconnect" method="POST" action="#">
+        <input type="submit" value="Disconnect">
+    </form>
+    <h2>Receive:</h2>
+    <div id="log"></div>
+</body>
+</html>
